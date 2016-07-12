@@ -6,16 +6,28 @@
     "node": "6.3.x"
   },
   "scripts": {
+    "postinstall": "gulp build",
     "start": "nf start"
   },
   "dependencies": {
     "body-parser": "~1.15.1",
+    "compression": "1.6.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.2.0",
     "ejs": "~2.4.1",
     "express": "~4.13.4",
     "foreman": "1.4.1",
     "morgan": "~1.7.0",
-    "serve-favicon": "~2.3.0"
+    "newrelic": "1.28.2",
+    "serve-favicon": "~2.3.0",
+    "babel-cli": "6.10.1",
+    "babel-preset-node6": "11.0.0",
+    "babel-preset-stage-0": "6.5.0",
+    "gulp": "3.9.1",
+    "gulp-live-server": "0.0.30",
+    "gulp-shell": "0.5.2",
+    "gulp-watch": "4.3.8",
+    "rimraf": "2.5.3",
+    "run-sequence": "1.2.2"
   }
 }

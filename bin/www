@@ -17,7 +17,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
  * Module dependencies.
  */
 
-var app = require(path.join(__dirname + srcDir + 'server'));
+var app = require(path.join(__dirname + srcDir + 'server')).default;
 var debug = require('debug')('exp:server');
 var http = require('http');
 

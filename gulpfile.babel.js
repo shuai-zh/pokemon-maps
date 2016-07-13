@@ -111,15 +111,12 @@ gulp.task('html:dev', () => {
 
 // build html files from client (usually partials) using useref, and bundle all client resources (css, js).
 gulp.task('html:build', ['styles', 'scripts:vendor:client', 'scripts:client'], () => {
-  const assets = $.useref.assets({searchPath: [`${devDir}/${clientDir}`, `${clientDir}`, '.']});
 
   return gulp.src([`${clientDir}/*.html`])
-    .pipe(assets)
     .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.rev())
-    .pipe(assets.restore())
-    .pipe($.useref())
+    .pipe($.useref({searchPath: [`${devDir}/${clientDir}`, `${clientDir}`, '.']}))
     .pipe($.revReplace())
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
     .pipe(gulp.dest(`${buildDir}/${clientDir}`));

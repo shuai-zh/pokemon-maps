@@ -6,6 +6,14 @@ var isDevMode = process.env.NODE_ENV === 'development';
 var srcDir = (isDevMode) ? '/../.tmp/server/' : '/../dist/server/';
 
 /**
+ * Enable NewRelic in prod
+ * (Must be the first module imported)
+ */
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+  require('newrelic')
+}
+
+/**
  * Module dependencies.
  */
 
@@ -13,12 +21,6 @@ var app = require(path.join(__dirname + srcDir + 'server'));
 var debug = require('debug')('exp:server');
 var http = require('http');
 
-/**
- * Enable NewRelic in prod
- */
-if (process.env.NEW_RELIC_LICENSE_KEY) {
-  require('newrelic')
-}
 
 /**
  * Get port from environment and store in Express.

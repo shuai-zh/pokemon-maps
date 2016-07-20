@@ -1,5 +1,6 @@
 import express from 'express';
-import connectEnsureLogin from 'connect-ensure-login';
+import {isLoggedIn} from '../middlewares/auth';
+
 /* eslint new-cap: 0 */
 const router = express.Router();
 
@@ -7,13 +8,25 @@ const router = express.Router();
 /* eslint-disable no-unused-vars */
 router.get('/', (req, res, next) => {
   /* eslint-enable no-unused-vars */
-  console.log(req.user);
-  res.render('index.html', {user: req.user});
+  res.render('index.nunj', {user: req.user});
 });
 
-router.get('/profile',
-  connectEnsureLogin.ensureLoggedIn(),
-  (req, res)=> {
-    res.render('profile.html', {user: req.user});
+router.get('/search',
+  // isLoggedIn,
+  (req, res, next) => {
+    /* eslint-enable no-unused-vars */
+    res.render('search.nunj', {user: req.user});
   });
+
+router.get('/report',
+  // isLoggedIn,
+  (req, res, next) => {
+    /* eslint-enable no-unused-vars */
+    res.render('report.nunj', {user: req.user});
+  });
+
+
+router.get('/profile', isLoggedIn, (req, res)=> {
+  res.render('profile.nunj', {user: req.user});
+});
 export default router;

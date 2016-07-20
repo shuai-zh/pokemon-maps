@@ -1,0 +1,83 @@
+{% extends "bases/layout.nunj" %}
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.17.1/ol.css" type="text/css">
+{% endblock %}
+
+
+{% block pagecontent %}
+  <div class="page-wrapper">
+    <select title="Select your surfboard" class="selectpicker">
+      <option>Select...</option>
+      <option data-thumbnail="images/pokemons/Pidgeot.png">Pidgeot</option>
+      <option data-thumbnail="images/pokemons/Raticate.png">Raticate</option>
+      <option data-thumbnail="images/pokemons/Kabutops.png">Kabutops</option>
+    </select>
+    <div id="map" class="map"></div>
+  </div>
+{% endblock %}
+
+
+{% block scripts %}
+  {{ super() }}
+  <script src="scripts/vendor/bootstrap-select.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.17.1/ol.js"></script>
+
+  <script>
+    var osmSource = new ol.source.OSM({
+      wrapDateLine: false,
+      wrapX: false,
+      noWrap: true
+    });
+    var tileGrid = new ol.tilegrid.createXYZ({
+      maxZoom: 22
+    });
+
+    var view = new ol.View({
+      center: [-7913573.311506975, 5211652.154782659],
+      zoom: 17,
+      minZoom: 9,
+      maxZoom: 18
+    });
+
+    var map = new ol.Map({
+      layers: [
+        new ol.layer.Tile({
+          source: osmSource
+        }),
+        new ol.layer.Tile({
+          source: new ol.source.TileDebug({
+            projection: 'EPSG:3857',
+            tileGrid: tileGrid
+          }),
+          visible: false
+        })
+      ],
+      target: 'map',
+      controls: ol.control.defaults({
+        attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+          collapsible: true
+        })
+      }),
+      view: view
+    });
+
+    var geolocation = new ol.Geolocation({
+      tracking: true,
+      projection: view.getProjection()
+    });
+
+    geolocation.on('change:position', function () {
+      var coordinate = geolocation.getPosition();
+      view.setCenter(coordinate);
+    });
+
+    map.on('click', function (evt) {
+      var coord = evt.coordinate;
+      console.log(tileGrid.getTileCoordForCoordAndResolution(coord, 0.5971642834779395));
+    });
+  </script>
+{% endblock scripts %}

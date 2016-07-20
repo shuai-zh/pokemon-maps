@@ -18,6 +18,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
  */
 
 var app = require(path.join(__dirname + srcDir + 'server')).default;
+var db = require(path.join(__dirname + srcDir + 'models'));
 var debug = require('debug')('exp:server');
 var http = require('http');
 
@@ -32,22 +33,24 @@ app.set('port', port);
 /**
  * Create HTTP server.
  */
+var server;
+db.default.sequelize.sync().then(function () {
+  server = http.createServer(app);
 
-var server = http.createServer(app);
+  /**
+   * Listen on provided port, on all network interfaces.
+   */
 
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port, function () { // Eldar added this callback to start browserSync in gulpfile
-  if (process.send) {
-    process.send('online');
-  } else {
-    //console.log('The server is running at http://localhost:' + server.get('port'));
-  }
+  server.listen(port, function () { // Eldar added this callback to start browserSync in gulpfile
+    if (process.send) {
+      process.send('online');
+    } else {
+      //console.log('The server is running at http://localhost:' + server.get('port'));
+    }
+  });
+  server.on('error', onError);
+  server.on('listening', onListening);
 });
-server.on('error', onError);
-server.on('listening', onListening);
 
 
 /**

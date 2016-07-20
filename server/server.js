@@ -4,6 +4,8 @@ import path from 'path';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
+import flash from 'connect-flash';
+import toastr from 'express-toastr';
 import expressSession from 'express-session';
 import compression from 'compression';
 import nunjucks from 'nunjucks';
@@ -11,9 +13,11 @@ import passport from 'passport';
 import {Strategy} from 'passport-facebook';
 
 import config from './config/application';
+import injectGlobal from './middlewares/inject-globals';
+import injectToastr from './middlewares/inject-toastr';
 
 import routes from './routes/index';
-import login from './routes/login';
+import auth from './routes/auth';
 
 // Configure the Facebook strategy for use by Passport.
 //
@@ -25,9 +29,9 @@ import login from './routes/login';
 passport.use(new Strategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: 'http://localhost:3000/login/facebook/return'
+    callbackURL: 'http://localhost:3000/auth/return'
   },
-  function (accessToken, refreshToken, profile, cb) {
+  (accessToken, refreshToken, profile, cb) => {
     // In this example, the user's Facebook profile is supplied as the user
     // record.  In a production-quality application, the Facebook profile should
     // be associated with a user record in the application's database, which
@@ -46,11 +50,11 @@ passport.use(new Strategy({
 // from the database when deserializing.  However, due to the fact that this
 // example does not have a database, the complete Twitter profile is serialized
 // and deserialized.
-passport.serializeUser(function (user, cb) {
+passport.serializeUser((user, cb)=> {
   cb(null, user);
 });
 
-passport.deserializeUser(function (obj, cb) {
+passport.deserializeUser((obj, cb) => {
   cb(null, obj);
 });
 
@@ -63,7 +67,9 @@ app.set('views', path.join(__dirname, 'views'));
 let nunjucksConfig = config.nunjucksConfig;
 nunjucksConfig.express = app;
 
-nunjucks.configure(app.get('views'), nunjucksConfig);
+let engine = nunjucks.configure(app.get('views'), nunjucksConfig);
+app.set('engine', engine);
+
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -72,7 +78,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(expressSession({secret: 'verySecretSalt', resave: true, saveUninitialized: true}));
-
+app.use(flash());
+app.use(toastr());
+app.use(injectGlobal);
+app.use(injectToastr);
 // Initialize Passport and restore authentication state, if any, from the
 // session.
 app.use(passport.initialize());
@@ -84,7 +93,7 @@ config.staticDirs.forEach((dir) => {
 });
 
 app.use('/', routes);
-app.use('/login', login);
+app.use('/auth', auth);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -102,7 +111,7 @@ if (app.get('env') === 'development') {
   app.use((err, req, res, next) => {
     /* eslint-enable no-unused-vars */
     res.status(err.status || 500);
-    res.render('error', {
+    res.render('error.nunj', {
       message: err.message,
       error: err
     });
@@ -115,7 +124,7 @@ if (app.get('env') === 'development') {
 app.use((err, req, res, next) => {
   /* eslint-enable no-unused-vars */
   res.status(err.status || 500);
-  res.render('error', {
+  res.render('error.nunj', {
     message: err.message,
     error: {}
   });

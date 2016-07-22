@@ -45,7 +45,7 @@ db.default.sequelize.sync().then(function () {
     if (process.send) {
       process.send('online');
     } else {
-      console.log('The server is running at http://localhost:' + server.get('port'));
+      console.log('The server is running at http://localhost:' + port);
     }
   });
   server.on('error', onError);

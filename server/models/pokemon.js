@@ -1,10 +1,6 @@
 export default function (sequelize, DataTypes) {
   var Pokemon = sequelize.define('pokemon',
     {
-      num: {
-        type: DataTypes.INTEGER,
-        unique: true
-      },
       name: {
         type: DataTypes.STRING
       },

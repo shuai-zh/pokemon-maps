@@ -67,7 +67,7 @@ app.set('views', path.join(__dirname, 'views'));
 let nunjucksConfig = config.nunjucksConfig;
 nunjucksConfig.express = app;
 
-let engine = nunjucks.configure(app.get('views'), nunjucksConfig);
+let engine = nunjucks.configure([app.get('views'), path.join(__dirname, '../client')], nunjucksConfig);
 app.set('engine', engine);
 
 

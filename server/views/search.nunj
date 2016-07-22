@@ -2,82 +2,142 @@
 
 {% block styles %}
   {{ super() }}
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.17.1/ol.css" type="text/css">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.17.1/ol.css" rel="stylesheet">
 {% endblock %}
 
 
 {% block pagecontent %}
   <div class="page-wrapper">
-    <select title="Select your surfboard" class="selectpicker">
-      <option>Select...</option>
-      <option data-thumbnail="images/pokemons/Pidgeot.png">Pidgeot</option>
-      <option data-thumbnail="images/pokemons/Raticate.png">Raticate</option>
-      <option data-thumbnail="images/pokemons/Kabutops.png">Kabutops</option>
-    </select>
+    <div class="search-bar-container">
+      <input type="hidden" id="_csrf" name="_csrf" value="{{ csrfToken }}">
+      <select id="pokemonPicker" class="pokemon-picker">
+        <option></option>
+        {% for pokemon in pokemons %}
+          <option data-thumbnail="{{ pokemon.image }}"
+                  value="{{ pokemon.id }}">{{ pokemon.name }}</option>
+        {% endfor %}
+      </select>
+      <a id="btnRefresh"><i class="fa fa-refresh"></i></a>
+    </div>
+
     <div id="map" class="map"></div>
   </div>
 {% endblock %}
 
 
+{% block footer %}
+  {#intentionaly keep blank to clear the footer#}
+{% endblock %}
+
+
 {% block scripts %}
   {{ super() }}
-  <script src="scripts/vendor/bootstrap-select.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.17.1/ol.js"></script>
 
   <script>
-    var osmSource = new ol.source.OSM({
-      wrapDateLine: false,
-      wrapX: false,
-      noWrap: true
-    });
-    var tileGrid = new ol.tilegrid.createXYZ({
-      maxZoom: 22
-    });
+    $(document).ready(function () {
+      var pokemonPicker = $('#pokemonPicker'),
+        refreshIcon = $('.fa.fa-refresh');
 
-    var view = new ol.View({
-      center: [-7913573.311506975, 5211652.154782659],
-      zoom: 17,
-      minZoom: 9,
-      maxZoom: 18
-    });
+      $("#btnRefresh").on("click", function (e) {
+        var animateClass = "icon-refresh-animate";
+        refreshIcon.addClass(animateClass);
 
-    var map = new ol.Map({
-      layers: [
-        new ol.layer.Tile({
-          source: osmSource
-        }),
-        new ol.layer.Tile({
-          source: new ol.source.TileDebug({
-            projection: 'EPSG:3857',
-            tileGrid: tileGrid
+        search(function () {
+          setTimeout(function () {
+            refreshIcon.removeClass(animateClass);
+          }, 1000);
+        });
+      });
+
+      function formatState(state) {
+        if (!state.id) {
+          return state.text;
+        }
+        var $state = $(
+          '<span><img src="' + state.element.dataset["thumbnail"] + '" class="pokemon-thumbnail" /> ' + state.text + '</span>'
+        );
+        return $state;
+      }
+
+      pokemonPicker.select2({
+        templateResult: formatState,
+        placeholder: 'Select the Pokémon you wish to catch...'
+      });
+
+      // init the map
+      var osmSource = new ol.source.OSM({
+        wrapDateLine: false,
+        wrapX: false,
+        noWrap: true
+      });
+
+      var tileGrid = new ol.tilegrid.createXYZ({
+        maxZoom: 22
+      });
+
+      var view = new ol.View({
+        center: [-7913573.311506975, 5211652.154782659],
+        zoom: 17,
+        minZoom: 9,
+        maxZoom: 18
+      });
+
+      var map = new ol.Map({
+        layers: [
+          new ol.layer.Tile({
+            source: osmSource
           }),
-          visible: false
-        })
-      ],
-      target: 'map',
-      controls: ol.control.defaults({
-        attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
-          collapsible: true
-        })
-      }),
-      view: view
+          new ol.layer.Tile({
+            source: new ol.source.TileDebug({
+              projection: 'EPSG:3857',
+              tileGrid: tileGrid
+            }),
+            visible: false
+          })
+        ],
+        target: 'map',
+        controls: ol.control.defaults({
+          attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+            collapsible: true
+          })
+        }),
+        view: view
+      });
+
+      var geolocation = new ol.Geolocation({
+        tracking: true,
+        projection: view.getProjection()
+      });
+
+      geolocation.on('change:position', function () {
+        var coordinate = geolocation.getPosition();
+        view.setCenter(coordinate);
+      });
+
+      pokemonPicker.change(function () {
+
+        console.log(pokemonPicker.val());
+      });
+
+      function search(cb) {
+        $.postCSRF('/search', {
+          id: pokemonPicker.val(),
+          extent: map.getView().calculateExtent(map.getSize())
+        }, function (data) {
+
+
+          if (cb && typeof cb === 'function') {
+            cb();
+          }
+        });
+      }
     });
 
-    var geolocation = new ol.Geolocation({
-      tracking: true,
-      projection: view.getProjection()
-    });
 
-    geolocation.on('change:position', function () {
-      var coordinate = geolocation.getPosition();
-      view.setCenter(coordinate);
-    });
-
-    map.on('click', function (evt) {
-      var coord = evt.coordinate;
-      console.log(tileGrid.getTileCoordForCoordAndResolution(coord, 0.5971642834779395));
-    });
   </script>
 {% endblock scripts %}

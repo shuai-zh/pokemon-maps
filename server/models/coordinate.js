@@ -8,6 +8,10 @@ export default function (sequelize, DataTypes) {
       y: {
         type: DataTypes.INTEGER,
         unique: 'coordinatesUniqueIndex'
+      },
+      totalCaught: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1
       }
     }, {
       classMethods: {

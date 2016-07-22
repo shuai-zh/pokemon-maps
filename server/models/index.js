@@ -2,8 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import Sequelize from 'sequelize';
 
-console.log('DATABASE_URL: ' + process.env.DATABASE_URL);
-
 var dbConfig = {
   dialect: 'postgres',
   protocol: 'postgres'

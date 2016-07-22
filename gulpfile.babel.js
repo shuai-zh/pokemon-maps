@@ -1,3 +1,4 @@
+// generated on 2015-09-05 using generator-gulp-webapp 1.0.3
 import gulp from 'gulp';
 import gulpLoadPlugins from 'gulp-load-plugins';
 import env from 'gulp-env';
@@ -46,7 +47,7 @@ gulp.task('scripts:vendor:client', () => {
     .require(dependencies)
     .bundle()
     .pipe(source('vendor.js'))
-    .pipe($.streamify($.uglify({mangle: false})))
+    .pipe($.streamify($.uglify({ mangle: false })))
     .pipe(gulp.dest(`${devDir}/${clientDir}/scripts`));
 });
 
@@ -108,15 +109,17 @@ gulp.task('html:dev', () => {
     `${clientDir}/**/*.html`
   ]).pipe(gulp.dest(`${devDir}/${clientDir}`))
 });
-
 // build html files from client (usually partials) using useref, and bundle all client resources (css, js).
 gulp.task('html:build', ['styles', 'scripts:vendor:client', 'scripts:client'], () => {
+  const assets = $.useref.assets({searchPath: [`${devDir}/${clientDir}`, `${clientDir}`, '.']});
 
   return gulp.src([`${clientDir}/*.html`])
+    .pipe(assets)
     .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
     .pipe($.rev())
-    .pipe($.useref({searchPath: [`${devDir}/${clientDir}`, `${clientDir}`, '.']}))
+    .pipe(assets.restore())
+    .pipe($.useref())
     .pipe($.revReplace())
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
     .pipe(gulp.dest(`${buildDir}/${clientDir}`));
@@ -196,14 +199,14 @@ gulp.task('express:dev', ['scripts:server:dev', 'extras:server:dev', 'html:dev']
     var child = cp.fork('bin/www', {
       env: newEnv
     });
-    child.once('message', function (message) {
+    child.once('message', function(message) {
       if (message.match(/^online$/)) {
         if (browserSync) {
           browserSync.reload();
         }
         if (!started) {
           started = true;
-          gulp.watch(src.server, function () {
+          gulp.watch(src.server, function() {
             $.util.log('Restarting development server.');
             server.kill('SIGTERM');
             server = startup();
@@ -215,13 +218,13 @@ gulp.task('express:dev', ['scripts:server:dev', 'extras:server:dev', 'html:dev']
     return child;
   })();
 
-  process.on('exit', function () {
+  process.on('exit', function() {
     server.kill('SIGTERM');
   });
 });
 
 // Launch BrowserSync development server
-gulp.task('serve', ['styles', 'scripts:vendor:client', 'scripts:client', 'fonts', 'express:dev'], function (cb) {
+gulp.task('serve', ['styles', 'scripts:vendor:client', 'scripts:client', 'fonts', 'express:dev'], function(cb) {
   //var browserSync = require('browser-sync');
 
   browserSync({
@@ -239,7 +242,7 @@ gulp.task('serve', ['styles', 'scripts:vendor:client', 'scripts:client', 'fonts'
     }
   }, cb);
 
-  process.on('exit', function () {
+  process.on('exit', function() {
     browserSync.exit();
   });
 

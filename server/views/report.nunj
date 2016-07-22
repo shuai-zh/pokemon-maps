@@ -2,81 +2,212 @@
 
 {% block styles %}
   {{ super() }}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.17.1/ol.css" type="text/css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magicsuggest/2.1.4/magicsuggest-min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/css/bootstrap-modal-bs3patch.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/css/bootstrap-modal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.17.1/ol.css">
 {% endblock %}
 
 
 {% block pagecontent %}
   <div class="page-wrapper">
-    <select title="Select your surfboard" class="selectpicker">
-      <option>Select...</option>
-      <option data-thumbnail="images/pokemons/Pidgeot.png">Pidgeot</option>
-      <option data-thumbnail="images/pokemons/Raticate.png">Raticate</option>
-      <option data-thumbnail="images/pokemons/Kabutops.png">Kabutops</option>
-    </select>
+    <button id="btnReport" class="btn btn-block btn-primary">
+      Report Pokémon Caught
+    </button>
     <div id="map" class="map"></div>
   </div>
+
+  <div id="modal" class="modal fade" data-width="760" style="display: none;">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h4 class="modal-title">Report Pokémon Caught</h4>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="col-md-12">
+          <input type="hidden" id="_csrf" name="_csrf" value="{{ csrfToken }}">
+          <select id="pokemonPicker" class="pokemon-picker" style="width:100%">
+            <option></option>
+            {% for pokemon in pokemons %}
+              <option data-thumbnail="{{ pokemon.image }}"
+                      value="{{ pokemon.id }}">{{ pokemon.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" data-dismiss="modal" class="btn btn-default">Cancel</button>
+      <button id="btnModalReport" type="button" class="btn btn-primary ">Report</button>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block footer %}
+  {#intentionaly keep blank to clear the footer#}
 {% endblock %}
 
 
 {% block scripts %}
   {{ super() }}
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/js/bootstrap-modal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/js/bootstrap-modalmanager.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.17.1/ol.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/magicsuggest/2.1.4/magicsuggest-min.js"></script>
 
   <script>
-    var osmSource = new ol.source.OSM({
-      wrapDateLine: false,
-      wrapX: false,
-      noWrap: true
-    });
-    var tileGrid = new ol.tilegrid.createXYZ({
-      maxZoom: 22
-    });
+    $(document).ready(function () {
+      var pokemonPicker = $('#pokemonPicker'),
+        btnReport = $('#btnReport'),
+        reportModal = $('#modal'),
+        btnModalReport = $('#btnModalReport');
 
-    var view = new ol.View({
-      center: [-7913573.311506975, 5211652.154782659],
-      zoom: 17,
-      minZoom: 9,
-      maxZoom: 18
-    });
+      var x, y, pokemonId;
 
-    var map = new ol.Map({
-      layers: [
-        new ol.layer.Tile({
-          source: osmSource
-        }),
-        new ol.layer.Tile({
-          source: new ol.source.TileDebug({
-            projection: 'EPSG:3857',
-            tileGrid: tileGrid
+      function formatState(state) {
+        if (!state.id) {
+          return state.text;
+        }
+        var $state = $(
+          '<span><img src="' + state.element.dataset["thumbnail"] + '" class="pokemon-thumbnail" /> ' + state.text + '</span>'
+        );
+        return $state;
+      }
+
+      pokemonPicker.select2({
+        templateResult: formatState,
+        placeholder: 'Select the Pokémon you wish to catch...'
+      });
+
+
+      btnReport.click(function () {
+        btnReport.text('Please Pick a Location on The Map');
+        map.on('click', onMapClick);
+      });
+
+      btnModalReport.click(function () {
+        pokemonId = pokemonPicker.val();
+
+        if (!pokemonId) {
+          toastr.warning('Please select a Pokémon!','Arhhh...');
+          return;
+        }
+
+        $.postCSRF('/report', {
+          x: x,
+          y: y,
+          pokemonId: pokemonId
+        }, function (data) {
+          reportModal.modal('hide');
+
+          if (data.success) {
+            toastr.success('Successfully reported a Pokémon.', 'Kudos!', {"positionClass": "toast-bottom-right"});
+          } else {
+            toastr.error('Something strange happened...', 'Oops', {"positionClass": "toast-bottom-right"});
+          }
+          clearState();
+        });
+      });
+
+      function clearState() {
+        x = null;
+        y = null;
+        pokemonId = null;
+        vectorSource.clear();
+        btnReport.text('Report Pokémon Caught');
+      }
+
+
+
+      var osmSource = new ol.source.OSM({
+        wrapDateLine: false,
+        wrapX: false,
+        noWrap: true
+      });
+      var tileGrid = new ol.tilegrid.createXYZ({
+        maxZoom: 22
+      });
+
+      var vectorSource = new ol.source.Vector({});
+      var vectorLayer = new ol.layer.Vector({
+        source: vectorSource
+      });
+
+      var view = new ol.View({
+        center: [-7913573.311506975, 5211652.154782659],
+        zoom: 16,
+        minZoom: 9,
+        maxZoom: 17
+      });
+
+      var map = new ol.Map({
+        layers: [
+          new ol.layer.Tile({
+            source: osmSource
           }),
-          visible: false
-        })
-      ],
-      target: 'map',
-      controls: ol.control.defaults({
-        attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
-          collapsible: true
-        })
-      }),
-      view: view
-    });
+          new ol.layer.Tile({
+            source: new ol.source.TileDebug({
+              projection: 'EPSG:3857',
+              tileGrid: tileGrid
+            }),
+//          visible: false
+          }),
+          vectorLayer
+        ],
+        target: 'map',
+        controls: ol.control.defaults({
+          attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+            collapsible: true
+          })
+        }),
+        view: view
+      });
 
-    var geolocation = new ol.Geolocation({
-      tracking: true,
-      projection: view.getProjection()
-    });
+      var geolocation = new ol.Geolocation({
+        tracking: true,
+        projection: view.getProjection()
+      });
 
-    geolocation.on('change:position', function () {
-      var coordinate = geolocation.getPosition();
-      view.setCenter(coordinate);
-    });
+      var onPositionChange = function () {
+        var coordinate = geolocation.getPosition();
+        view.setCenter(coordinate);
+        geolocation.un('change:position', onPositionChange);
+      };
 
-    map.on('click', function (evt) {
-      var coord = evt.coordinate;
-      console.log(tileGrid.getTileCoordForCoordAndResolution(coord, 0.5971642834779395));
+      geolocation.on('change:position', onPositionChange);
+
+      var onMapClick = function (evt) {
+        var coord = evt.coordinate;
+        var tileInfo = tileGrid.getTileCoordForCoordAndResolution(coord, 1.194328566955879);
+        x = tileInfo[1];
+        y = tileInfo[2];
+
+        var iconFeature = new ol.Feature({
+          geometry: new ol.geom.Point(coord)
+        });
+
+        var iconStyle = new ol.style.Style({
+          image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+            anchor: [0.5, 39],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'pixels',
+            src: '/images/pin_icon.png'
+          }))
+        });
+
+        iconFeature.setStyle(iconStyle);
+
+        vectorSource.addFeature(iconFeature);
+
+        map.un('click', onMapClick);
+        reportModal.modal('show');
+        reportModal.on('hidden.bs.modal', clearState);
+      };
+
     });
   </script>
 {% endblock scripts %}

@@ -2,10 +2,8 @@ export default function (sequelize, DataTypes) {
   var Rating = sequelize.define('rating',
     {
       caught: {
-        type: DataTypes.INTEGER
-      },
-      total: {
-        type: DataTypes.INTEGER
+        type: DataTypes.INTEGER,
+        defaultValue: 0
       }
     }, {
       classMethods: {

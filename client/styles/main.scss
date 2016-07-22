@@ -175,4 +175,51 @@ p.copyright {
 
 .page-wrapper {
   padding-top: 50px;
+
+  .search-bar-container {
+    display: flex;
+
+    #btnRefresh {
+      width: 26px;
+      height: 24px;
+      font-size: 20px;
+      display: inline;
+      padding: 0 4px;
+      color: black;
+    }
+
+    .icon-refresh-animate {
+      animation-name: rotateThis;
+      animation-duration: .5s;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+
+    @keyframes rotateThis {
+      from {
+        transform: scale(1) rotate(0deg);
+      }
+      to {
+        transform: scale(1) rotate(360deg);
+      }
+    }
+  }
+
+  #pokemonPicker {
+    width: 100%;
+  }
+
+  div#map {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+  }
+}
+
+.select2-container {
+  z-index: 9999;
+}
+
+.pokemon-thumbnail {
+  width: 30px;
 }

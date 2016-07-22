@@ -93,7 +93,7 @@
         pokemonId = pokemonPicker.val();
 
         if (!pokemonId) {
-          toastr.warning('Please select a Pokémon!','Arhhh...');
+          toastr.warning('Please select a Pokémon!', 'Arhhh...');
           return;
         }
 
@@ -122,7 +122,6 @@
       }
 
 
-
       var osmSource = new ol.source.OSM({
         wrapDateLine: false,
         wrapX: false,
@@ -143,8 +142,10 @@
         minZoom: 9,
         maxZoom: 17
       });
+      var interactions = ol.interaction.defaults({altShiftDragRotate: false, pinchRotate: false});
 
       var map = new ol.Map({
+        interactions: interactions,
         layers: [
           new ol.layer.Tile({
             source: osmSource

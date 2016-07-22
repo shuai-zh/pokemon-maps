@@ -43,7 +43,7 @@ router.post('/search',
 );
 
 router.get('/report',
-  // isLoggedIn,
+  isLoggedIn,
   csrfProtection,
   (req, res, next) => {
     /* eslint-enable no-unused-vars */
@@ -84,7 +84,7 @@ function updateCoordinate(coordinate, cb) {
 }
 
 router.post('/report',
-  // isLoggedIn,
+  isLoggedIn,
   csrfProtection,
   (req, res, next)=> {
     let x = req.body['x'],
@@ -113,9 +113,5 @@ router.post('/report',
       });
     });
   });
-
-router.get('/profile', isLoggedIn, (req, res)=> {
-  res.render('profile.nunj', {user: req.user});
-});
 
 export default router;

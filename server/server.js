@@ -29,7 +29,7 @@ import auth from './routes/auth';
 passport.use(new Strategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: 'http://localhost:3000/auth/return'
+    callbackURL: '/auth/return'
   },
   (accessToken, refreshToken, profile, cb) => {
     // In this example, the user's Facebook profile is supplied as the user

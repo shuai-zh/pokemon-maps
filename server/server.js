@@ -115,8 +115,8 @@ app.use((req, res, next) => {
 
 // development error handler
 // will print stacktrace
-var env = app.get('env');
-if (env === 'development') {
+var env = process.env.NODE_ENV;
+if (!env || env === 'development') {
   /* eslint-disable no-unused-vars */
   app.use((err, req, res, next) => {
     /* eslint-enable no-unused-vars */
@@ -128,7 +128,6 @@ if (env === 'development') {
   });
 } else if (env === 'production') {
   // force to redirect to https in production
-  console.log('HTTPS');
   app.use(enforce.HTTPS({trustProtoHeader: true}));
 }
 

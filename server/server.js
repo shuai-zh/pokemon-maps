@@ -7,6 +7,8 @@ import bodyParser from 'body-parser';
 import flash from 'connect-flash';
 import toastr from 'express-toastr';
 import expressSession from 'express-session';
+import expressValidator from 'express-validator';
+import enforce from 'express-sslify';
 import compression from 'compression';
 import nunjucks from 'nunjucks';
 import passport from 'passport';
@@ -76,6 +78,13 @@ app.set('engine', engine);
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+app.use(expressValidator({
+  customValidators: {
+    isArray: function (value) {
+      return Array.isArray(value);
+    }
+  }
+}));
 app.use(cookieParser());
 app.use(expressSession({secret: 'verySecretSalt', resave: true, saveUninitialized: true}));
 app.use(flash());
@@ -106,7 +115,8 @@ app.use((req, res, next) => {
 
 // development error handler
 // will print stacktrace
-if (app.get('env') === 'development') {
+var env = app.get('env');
+if (env === 'development') {
   /* eslint-disable no-unused-vars */
   app.use((err, req, res, next) => {
     /* eslint-enable no-unused-vars */
@@ -116,6 +126,10 @@ if (app.get('env') === 'development') {
       error: err
     });
   });
+} else if (env === 'production') {
+  // force to redirect to https in production
+  console.log('HTTPS');
+  app.use(enforce.HTTPS({trustProtoHeader: true}));
 }
 
 // production error handler

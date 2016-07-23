@@ -39,19 +39,24 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.17.1/ol.js"></script>
 
   <script>
+
     $(document).ready(function () {
       var pokemonPicker = $('#pokemonPicker'),
-        refreshIcon = $('.fa.fa-refresh');
+        refreshIcon = $('.fa.fa-refresh'),
+        animateClass = "icon-refresh-animate";
+
+      function startRefreshButtonAnimation() {
+        refreshIcon.addClass(animateClass);
+      }
+
+      function stopRefreshButtonAnimation() {
+        setTimeout(function () {
+          refreshIcon.removeClass(animateClass);
+        }, 1000);
+      }
 
       $("#btnRefresh").on("click", function (e) {
-        var animateClass = "icon-refresh-animate";
-        refreshIcon.addClass(animateClass);
-
-        search(function () {
-          setTimeout(function () {
-            refreshIcon.removeClass(animateClass);
-          }, 1000);
-        });
+        search();
       });
 
       function formatState(state) {
@@ -77,15 +82,21 @@
       });
 
       var tileGrid = new ol.tilegrid.createXYZ({
-        maxZoom: 22
+        maxZoom: MAP_MAX_LEVEL
+      });
+
+      var vectorSource = new ol.source.Vector({});
+      var vectorLayer = new ol.layer.Vector({
+        source: vectorSource
       });
 
       var view = new ol.View({
         center: [-7913573.311506975, 5211652.154782659],
-        zoom: 17,
+        zoom: 16,
         minZoom: 9,
-        maxZoom: 18
+        maxZoom: MAP_MAX_LEVEL
       });
+
       var interactions = ol.interaction.defaults({altShiftDragRotate: false, pinchRotate: false});
 
       var map = new ol.Map({
@@ -100,7 +111,8 @@
               tileGrid: tileGrid
             }),
             visible: false
-          })
+          }),
+          vectorLayer
         ],
         target: 'map',
         controls: ol.control.defaults({
@@ -122,20 +134,68 @@
       });
 
       pokemonPicker.change(function () {
-
-        console.log(pokemonPicker.val());
+        search();
       });
 
-      function search(cb) {
+
+      function search() {
+        startRefreshButtonAnimation();
+        vectorSource.clear();
+        var extent = map.getView().calculateExtent(map.getSize());
+        var pokemonId = pokemonPicker.val();
+
+        if (!pokemonId) {
+          toastr.warning('Please select a Pokémon!', 'Arhhh...', {"positionClass": "toast-bottom-right"});
+          stopRefreshButtonAnimation();
+          return;
+        }
+
+        var bottomLeftTileInfo = tileGrid.getTileCoordForCoordAndResolution([extent[0], extent[1]], MAP_RESOLUTION);
+        var topRightTileInfo = tileGrid.getTileCoordForCoordAndResolution([extent[2], extent[3]], MAP_RESOLUTION);
+
         $.postCSRF('/search', {
-          id: pokemonPicker.val(),
-          extent: map.getView().calculateExtent(map.getSize())
-        }, function (data) {
+          pokemonId: pokemonId,
+          bottomLeftX: bottomLeftTileInfo[1],
+          bottomLeftY: bottomLeftTileInfo[2],
+          topRightX: topRightTileInfo[1],
+          topRightY: topRightTileInfo[2]
+        }).done(function (res) {
+          for (var i in res.data) {
+            var record = res.data[i];
+            var tileCoordExtent = tileGrid.getTileCoordExtent([MAP_MAX_LEVEL, record.x, record.y]);
+            var centerX = tileCoordExtent[0] + (tileCoordExtent[2] - tileCoordExtent[0]) / 2.0;
+            var centerY = tileCoordExtent[1] + (tileCoordExtent[3] - tileCoordExtent[1]) / 2.0;
+
+            var iconFeature = new ol.Feature({
+              geometry: new ol.geom.Point([centerX, centerY]),
+              totalCaught: record.totalCaught,
+              percentage: record.percentage,
+              name: record.name,
+              image: record.image
+            });
 
 
-          if (cb && typeof cb === 'function') {
-            cb();
+            var selectedPokemon = pokemonPicker.find('option:selected');
+
+
+            var iconStyle = new ol.style.Style({
+              image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+                anchor: [0.5, 0.5],
+                anchorXUnits: 'fraction',
+                anchorYUnits: 'fraction',
+                src: selectedPokemon.data('thumbnail'),
+                scale: 0.25
+              }))
+            });
+
+            iconFeature.setStyle(iconStyle);
+
+            vectorSource.addFeature(iconFeature);
           }
+        }).fail(function (err) {
+          toastr.error(err.statusText, 'Oops', {"positionClass": "toast-bottom-right"});
+        }).always(function () {
+          stopRefreshButtonAnimation();
         });
       }
     });

@@ -21,6 +21,7 @@ import injectToastr from './middlewares/inject-toastr';
 import routes from './routes/index';
 import auth from './routes/auth';
 
+const env = process.env.NODE_ENV;
 // Configure the Facebook strategy for use by Passport.
 //
 // OAuth 2.0-based strategies require a `verify` function which receives the
@@ -101,21 +102,9 @@ config.staticDirs.forEach((dir) => {
   app.use(express.static(dir));
 });
 
-app.use('/', routes);
-app.use('/auth', auth);
-
-// catch 404 and forward to error handler
-app.use((req, res, next) => {
-  const err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-
 // error handlers
-
 // development error handler
 // will print stacktrace
-var env = process.env.NODE_ENV;
 if (!env || env === 'development') {
   /* eslint-disable no-unused-vars */
   app.use((err, req, res, next) => {
@@ -130,6 +119,18 @@ if (!env || env === 'development') {
   // force to redirect to https in production
   app.use(enforce.HTTPS({trustProtoHeader: true}));
 }
+
+// register routes
+app.use('/', routes);
+app.use('/auth', auth);
+
+// catch 404 and forward to error handler
+app.use((req, res, next) => {
+  const err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+});
+
 
 // production error handler
 // no stacktraces leaked to user

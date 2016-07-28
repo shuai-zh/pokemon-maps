@@ -43,13 +43,11 @@
         <div class="col-lg-5 col-sm-6">
           <hr class="section-heading-spacer">
           <div class="clearfix"></div>
-          <h2 class="section-heading">Death to the Stock Photo:<br>Special Thanks</h2>
-          <p class="lead">A special thanks to <a target="_blank" href="http://join.deathtothestockphoto.com/">Death to
-              the Stock Photo</a> for providing the photographs that you see in this template. Visit their website to
-            become a member.</p>
+          <h2 class="section-heading">Pokemons Map</h2>
+          <p class="lead">Now all of us are trainers. Now all of us are in the pokemon world. Now all of us are family. Now let’s help each other. Here, you can report what you caught, and  also find what you want. Here, you can be a provider, and also a searcher. Here is pokemon trainers’ heaven. Here is pokemon trainer’s home.</p>
         </div>
         <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-          <img class="img-responsive" src="img/ipad.png" alt="">
+          <img class="img-responsive" src="../images/pokemonLanding1.jpg" alt="">
         </div>
       </div>
 
@@ -67,13 +65,15 @@
         <div class="col-lg-5 col-lg-offset-1 col-sm-push-6  col-sm-6">
           <hr class="section-heading-spacer">
           <div class="clearfix"></div>
-          <h2 class="section-heading">3D Device Mockups<br>by PSDCovers</h2>
-          <p class="lead">Turn your 2D designs into high quality, 3D product shots in seconds using free Photoshop
-            actions by <a target="_blank" href="http://www.psdcovers.com/">PSDCovers</a>! Visit their website to
-            download some of their awesome, free photoshop actions!</p>
+          <h2 class="section-heading">How to Report</h2>
+          <p class="lead">First, please click the Report button.
+          <br>
+          Then, pin a location you want to report.
+          <br>
+          After a popup, please select the pokemon you caught.</p>
         </div>
         <div class="col-lg-5 col-sm-pull-6  col-sm-6">
-          <img class="img-responsive" src="img/dog.png" alt="">
+          <img class="img-responsive" src="../images/pokemonLanding2.png" alt="">
         </div>
       </div>
 
@@ -91,14 +91,16 @@
         <div class="col-lg-5 col-sm-6">
           <hr class="section-heading-spacer">
           <div class="clearfix"></div>
-          <h2 class="section-heading">Google Web Fonts and<br>Font Awesome Icons</h2>
-          <p class="lead">This template features the 'Lato' font, part of the <a target="_blank"
-                                                                                 href="http://www.google.com/fonts">Google
-              Web Font library</a>, as well as <a target="_blank" href="http://fontawesome.io">icons from Font
-              Awesome</a>.</p>
+          <h2 class="section-heading">How to Search</h2>
+          <p class="lead">
+          First, please pin a location on the map.
+          <br>
+          Then, click refresh button to focus on current view.
+          <br>
+          Finally, select which pokemon you want to search.</p>
         </div>
         <div class="col-lg-5 col-lg-offset-2 col-sm-6">
-          <img class="img-responsive" src="img/phones.png" alt="">
+          <img class="img-responsive" src="../images/pokemonLanding3.png" alt="">
         </div>
       </div>
 
